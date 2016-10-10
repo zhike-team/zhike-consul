@@ -1,0 +1,29 @@
+{
+  "name": "zhike-consul",
+  "version": "1.0.0",
+  "description": "a simple consul client",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zhike-team/zhike-consul.git"
+  },
+  "keyword": [
+    "consul",
+    "config"
+  ],
+  "author": "xubensheng <http://fengliner.github.io>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/zhike-team/zhike-consul/issues"
+  },
+  "dependencies": {
+    "consul": "^0.27.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.1.1"
+  }
+}
