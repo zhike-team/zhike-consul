@@ -1,68 +1,85 @@
 'use strict';
 
 const consul = require('consul');
+const _Promise = require('bluebird');
+const DEFAULT_HOST = '127.0.0.1';
+const DEFAULT_PORT = 8500;
 
-// 构造函数
-function Consul(host, port) {
-  host = host || '127.0.0.1';
-  port = port || 8500;
+/**
+ * Creates a ZhikeConsul instance
+ * @constructor
+ * @param {(number|string)} [port=8500]
+ * @param {(string)} [host=localhost]
+ * @param {(array)}  [configKeys=[c1, c2]]
+ * @param{(object)}  [ref=global]
+ */
+function ZhikeConsul(configKeys, host, port, ref) {
+  if (!configKeys) {
+    throw new Error('arguments must have configKeys');
+  }
+
+  // CFG应该挂到全局上
+  ref = ref || global;
+
+  host = host || DEFAULT_HOST;
+  port = port || DEFAULT_HOST;
+
+  // 检查CFG是否存在
+  if (ref.CFG) {
+    throw new Error('please make sure that ref.CFG was not exist');
+  }
+
+  if(!(this instanceof ZhikeConsul)) {
+    return new ZhikeConsul(configKeys, host, port, ref);
+  }
+
+  this.configKeys = configKeys;
+  this.host = host;
+  this.port = port;
   this.consul = consul({
-    host: host,
-    port: port,
+    host: this.host,
+    port: this.port,
     promisify: true
   });
+
+  // 初始化CFG为空对象
+  this.ref = ref;
+  this.ref.CFG = {};
 }
 
-// 注册服务
-Consul.prototype.register = function(data) {
+/**
+ * Pull configs from origin server
+ */
+ZhikeConsul.prototype.pull = _Promise.coroutine(function*() {
+  for (let i = 0; i < this.configKeys.length; i++) {
+    let configVal = yield this.consul.kv.get(this.configKeys[i]);
+    this.ref.CFG[this.configKeys[i]] = JSON.parse(configVal.Value);
+  }
+});
+
+/**
+ * Register current service
+ */
+ZhikeConsul.prototype.register = function(data) {
   return this.consul.agent.service.register(data);
 }
 
-// 注销服务
-Consul.prototype.deregister = function(data) {
+/**
+ * Deregister current service
+ */
+ZhikeConsul.prototype.deregister = function(data) {
   return this.consul.agent.service.deregister(data);
 }
 
-// 获取当前服务所在节点的ip
-Consul.prototype.getNodeIp = function() {
-  let that = this;
-  return new Promise(function(resolve, reject) {
-    that.consul.catalog.node.list().then(function(nodes) {
-      resolve(nodes[0]['Address']);
-    }, function(err) {
-      reject(err);
-    })
-  });
-}
+/**
+ * Get origin node's IP
+ */
+ZhikeConsul.prototype.getNodeIp = _Promise.coroutine(function*() {
+  let nodes = yield this.consul.catalog.node.list();
+  if (nodes.length === 0) {
+    throw new Error('no nodes list');
+  }
+  return nodes[0]['Address'];
+});
 
-// 设置consul存储的信息
-Consul.prototype.set = function(key, value) {
-  let that = this;
-  return new Promise(function(resolve, reject) {
-    that.consul.kv.set(key, value).then(function(data) {
-      resolve(data);
-    }, function(err) {
-      reject(err);
-    })
-  });
-}
-
-// 获取consul存储的信息
-Consul.prototype.get = function(key) {
-  let that = this;
-  return new Promise(function(resolve, reject) {
-    that.consul.kv.get(key).then(function(data) {
-      try {
-        data.Value = JSON.parse(data.Value);
-      }
-      catch (err) {
-        console.log(err);
-      }
-      resolve(data.Value);
-    }, function(err) {
-      reject(err);
-    })
-  });
-}
-
-module.exports = Consul;
+module.exports = ZhikeConsul;

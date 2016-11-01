@@ -20,6 +20,7 @@
     "url": "https://github.com/zhike-team/zhike-consul/issues"
   },
   "dependencies": {
+    "bluebird": "^3.4.6",
     "consul": "^0.27.0"
   },
   "devDependencies": {

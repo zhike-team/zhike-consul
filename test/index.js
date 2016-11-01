@@ -1,7 +1,8 @@
 'use strict';
 
 const Consul = require('../index');
-const consul = new Consul('172.16.3.2', 8500);
+const configKeys = ['optimus'];
+const consul = new Consul(configKeys, '172.16.3.2', 8500, global);
 const expect = require('chai').expect;
 
 describe('Consul', function() {
@@ -13,18 +14,10 @@ describe('Consul', function() {
     })
   });
 
-  describe('#set', function() {
-    it('should return true when operation is right', function() {
-      consul.set('hello', 'world').then(function(data) {
-        expect(data).equal(true);
-      })
-    })
-  });
-
-  describe('#get', function() {
+  describe('#pull', function() {
     it('should get config information when config key exist', function() {
-      consul.get('hello').then(function(data) {
-        expect(data).equal('world');
+      consul.pull().then(function() {
+        expect(CFG.optimus.port).equal(7004);
       })
     })
   });
