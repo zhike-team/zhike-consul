@@ -53,6 +53,9 @@ function ZhikeConsul(configKeys, host, port, ref) {
 ZhikeConsul.prototype.pull = _Promise.coroutine(function*() {
   for (let i = 0; i < this.configKeys.length; i++) {
     let configVal = yield this.consul.kv.get(this.configKeys[i]);
+    if (configVal === undefined) {
+      throw new Error(`config of ${this.configKeys[i]} does not exist`);
+    }
     this.ref.CFG[this.configKeys[i]] = JSON.parse(configVal.Value);
   }
 });
