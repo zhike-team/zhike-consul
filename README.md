@@ -5,7 +5,7 @@ a simple consul client
 ## Demo
 ```js
 const Consul = require('zhike-consul');
-const configKeys = ['optimus', 'db', 'redis', 'mq'];
+const configKeys = ['order', 'mq', 'userService', 'payService'];
 const host = '127.0.0.1';
 const port = 8500;
 
@@ -14,12 +14,18 @@ let consul = new Consul(configKeys, host, port, global);
 
 // 2.加载相关配置
 consul.pull().then(function() {
-  // 3.启动HTTP Server
+  // 3.构造全局config对象
+  global.config = Object.assign({},
+    CFG.order,
+    {mq: CFG.mq},
+    {userService: CFG.userService},
+    {payService: CFG.payService}
+  );
+  // 4.启动HTTP Server
   let express = require('express');
   let app = express();
-  initRedis(CFG.redis.host, CFG.redis.port);
-  initDB(CFG.optimus.db);
-  app.listen(CFG.optimus.port);
+  let mq = amqplib.connect('amqp://' + config.mq.user + ':' + config.mq.pass + '@' + config.mq.host + ':' + config.mq.port);
+  app.listen(config.port);
 })
 ```
 ## API
