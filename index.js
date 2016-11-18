@@ -10,11 +10,11 @@ const DEFAULT_PORT = 8500;
  * @constructor
  * @param {(number|string)} [port=8500]
  * @param {(string)} [host=localhost]
- * @param {(array)}  [configKeys=[c1, c2]]
+ * @param {(array)}  [keys=[c1, c2]]
  * @param{(object)}  [ref=global]
  */
-function ZhikeConsul(configKeys, host, port, ref) {
-  if (!configKeys) {
+function ZhikeConsul(keys, host, port, ref) {
+  if (!keys) {
     throw new Error('arguments must have configKeys');
   }
 
@@ -30,10 +30,10 @@ function ZhikeConsul(configKeys, host, port, ref) {
   }
 
   if(!(this instanceof ZhikeConsul)) {
-    return new ZhikeConsul(configKeys, host, port, ref);
+    return new ZhikeConsul(keys, host, port, ref);
   }
 
-  this.configKeys = configKeys;
+  this.keys = keys;
   this.host = host;
   this.port = port;
   this.consul = consul({
@@ -45,18 +45,30 @@ function ZhikeConsul(configKeys, host, port, ref) {
   // 初始化CFG为空对象
   this.ref = ref;
   this.ref.CFG = {};
+  this.ref.config = {};
 }
 
 /**
  * Pull configs from origin server
+ * @param {String} env 环境，如development、test或production
  */
-ZhikeConsul.prototype.pull = _Promise.coroutine(function*() {
-  for (let i = 0; i < this.configKeys.length; i++) {
-    let configVal = yield this.consul.kv.get(this.configKeys[i]);
-    if (configVal === undefined) {
-      throw new Error(`config of ${this.configKeys[i]} does not exist`);
+ZhikeConsul.prototype.pull = _Promise.coroutine(function*(env) {
+  env = env || 'development';
+  for (let i = 0; i < this.keys.length; i++) {
+    let key = this.keys[i];
+    let data = yield this.consul.kv.get(key);
+    if (data === undefined) {
+      throw new Error(`config of ${key} does not exist`);
     }
-    this.ref.CFG[this.configKeys[i]] = JSON.parse(configVal.Value);
+    let value = JSON.parse(data.Value)[env];
+    let assign = {};
+    if (key.indexOf('Private') === -1) {
+      assign[key] = value;
+    } else {
+      assign = value;
+    }
+    this.ref.CFG[key] = value;
+    this.ref.config = Object.assign(this.ref.config, assign);
   }
 });
 
