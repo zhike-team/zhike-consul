@@ -70,6 +70,10 @@ ZhikeConsul.prototype.pull = _Promise.coroutine(function*(env) {
     this.ref.CFG[key] = value;
     this.ref.config = Object.assign(this.ref.config, assign);
   }
+  return {
+    CFG: this.ref.CFG,
+    config: this.ref.config
+  }
 });
 
 /**
