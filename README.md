@@ -5,7 +5,7 @@ a simple consul client
 ## Demo
 ```js
 const Consul = require('zhike-consul');
-const keys = ['orderPrivate', 'mq', 'userService', 'payService'];
+const keys = ['orderPrivate', 'mq', 'userService'];
 const host = '127.0.0.1';
 const port = 8500;
 const env = 'development';
@@ -14,29 +14,28 @@ const env = 'development';
 let consul = new Consul(keys, host, port, global);
 
 // 2.加载相关配置
-consul.pull(env).then(function() {
-  /** 每个key的配置信息会挂载在global的CFG对象下
-    global.CFG.orderPrivate = {port: 6002, timeout: 10};
-    global.CFG.mq = {user: 'test', pass: 'test'};
-    global.CFG.userService = {url: 'http://api.dev.smartstudy.com/user'};
-    global.CFG.payService = {url: 'http://api.dev.smartstudy.com/pay'};
+consul.pull(env).then(function(data) {
+  /**
+    data = {
+      CFG: {
+        orderPrivate: {port: 6002, timeout: 10},
+        mq: {user: 'test', pass: 'test'},
+        userService: {url: 'http://api.dev.smartstudy.com/user'}
+      },
+      config: {
+        port: 6002,
+        timeout: 10,
+        mq: {user: 'test', pass: 'test'},
+        userService: {url: 'http://api.dev.smartstudy.com/user'}
+      }
+    }
+  */
+  /** 每个key的配置信息会默认挂载在global的CFG对象下
+    global.CFG = data.CFG
   */
 
   /** global的config对象会以私有配置为准，把其余的key的配置信息平铺在一起
-    global.config = {
-      port: 6002,
-      timeout: 10,
-      mq: {
-        user: 'test',
-        pass: 'test'
-      },
-      userService: {
-        url: 'http://api.dev.smartstudy.com/user'
-      },
-      payService: {
-        url: 'http://api.dev.smartstudy.com/pay'
-      }
-    };
+    global.config = data.config;
   */
 
   // 3.启动HTTP Server
@@ -70,7 +69,11 @@ Get config values.
 
 #### Usage
 ```js
-consul.pull('development').then(function() {
+consul.pull('development').then(function(data) {
+  console.log(data.CFG.redis.port); // 6379
+  console.log(data.config.redis.port); // 6379
+  // 或直接用global对象CFG和config
+  console.log(config.redis.port); // 6379
   console.log(CFG.redis.port);  // 6379
 })
 ```
