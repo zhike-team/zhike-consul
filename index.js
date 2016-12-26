@@ -1,7 +1,11 @@
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
 const consul = require('consul');
 const _Promise = require('bluebird');
+const formatJson = require('format-json-pretty');
+
 const DEFAULT_HOST = '127.0.0.1';
 const DEFAULT_PORT = 8500;
 
@@ -70,6 +74,11 @@ ZhikeConsul.prototype.pull = _Promise.coroutine(function*(env) {
     this.ref.CFG[key] = value;
     this.ref.config = Object.assign(this.ref.config, assign);
   }
+
+  // save to config.local.js
+  let fileContent = "'use strict';\n\nmodule.exports = " + formatJson(this.ref.config);
+  fs.writeFileSync(path.join(process.cwd() + '/config.local.js'), fileContent);
+
   return {
     CFG: this.ref.CFG,
     config: this.ref.config
