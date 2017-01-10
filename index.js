@@ -43,7 +43,8 @@ function ZhikeConsul(keys, host, port, ref) {
   this.consul = consul({
     host: this.host,
     port: this.port,
-    promisify: true
+    promisify: true,
+    timeout: 1000
   });
 
   // 初始化CFG为空对象
@@ -58,6 +59,34 @@ function ZhikeConsul(keys, host, port, ref) {
  */
 ZhikeConsul.prototype.pull = _Promise.coroutine(function*(env) {
   env = env || 'development';
+
+  // status check
+  try {
+    yield this.consul.health.checks('test');
+  } catch(err) {
+    console.log(err.stack);
+    let privateKey;
+    for (let i = 0; i < this.keys.length; i++) {
+      if (this.keys[i].indexOf('Private') !== -1) {
+        privateKey = this.keys[i];
+        this.ref.CFG[privateKey] = {};
+        break;
+      }
+    }
+    this.ref.config = require(process.cwd() + '/config.local.js');
+    for (let key in this.ref.config) {
+      if (this.keys.indexOf(key) !== -1) {
+        this.ref.CFG[key] = this.ref.config[key];
+      } else {
+        this.ref.CFG[privateKey][key] = this.ref.config[key];
+      }
+    }
+    return {
+      CFG: this.ref.CFG,
+      config: this.ref.config
+    }
+  }
+
   for (let i = 0; i < this.keys.length; i++) {
     let key = this.keys[i];
     let data = yield this.consul.kv.get(key);
