@@ -26,7 +26,7 @@ function ZhikeConsul(keys, host, port, ref) {
   ref = ref || global;
 
   host = host || DEFAULT_HOST;
-  port = port || DEFAULT_HOST;
+  port = port || DEFAULT_PORT;
 
   // 检查CFG是否存在
   if (ref.CFG) {
