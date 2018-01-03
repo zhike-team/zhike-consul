@@ -8,7 +8,7 @@ const formatJson = require('format-json-pretty');
 
 const DEFAULT_HOST = '127.0.0.1';
 const DEFAULT_PORT = 8500;
-const DEFAULT_TIMEOUT = 1000;
+const DEFAULT_TIMEOUT = 3000;
 
 /**
  * Creates a ZhikeConsul instance
@@ -17,6 +17,7 @@ const DEFAULT_TIMEOUT = 1000;
  * @param {(string)} [host=localhost]
  * @param {(array)}  [keys=[c1, c2]]
  * @param{(object)}  [ref=global]
+ * @param {number} [timeout=3000]
  */
 function ZhikeConsul(keys, host, port, ref, timeout) {
   if (!keys) {
@@ -29,6 +30,7 @@ function ZhikeConsul(keys, host, port, ref, timeout) {
   host = host || DEFAULT_HOST;
   port = port || DEFAULT_PORT;
   timeout = timeout || DEFAULT_TIMEOUT;
+  timeout = Math.min(Math.max(timeout, 1000), 30000);
 
   // 检查CFG是否存在
   if (ref.CFG) {

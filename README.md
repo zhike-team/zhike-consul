@@ -9,9 +9,10 @@ const keys = ['orderPrivate', 'mq', 'userService'];
 const host = '127.0.0.1';
 const port = 8500;
 const env = 'development';
+const timeout = 3000;
 
 // 1.初始化consul
-let consul = new Consul(keys, host, port, global);
+let consul = new Consul(keys, host, port, global, timeout);
 
 // 2.加载相关配置
 consul.pull(env).then(function(data) {
@@ -54,11 +55,12 @@ Initialize a new Consul client
 + host(string), default: 127.0.0.1
 + port(number), default: 8500
 + global, global.CFG可以获取到相关的配置
++ timeout, 超时时间，默认为3000，可以按需指定，最大不能超过30000，单位是毫秒
 
 #### Usage
 ```js
 var Consul = require('zhike-consul');
-var consul = new Consul(keys, host, port, global);
+var consul = new Consul(keys, host, port, global, timeout);
 ```
 
 ### 2.pull(env)
