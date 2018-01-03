@@ -8,6 +8,7 @@ const formatJson = require('format-json-pretty');
 
 const DEFAULT_HOST = '127.0.0.1';
 const DEFAULT_PORT = 8500;
+const DEFAULT_TIMEOUT = 1000;
 
 /**
  * Creates a ZhikeConsul instance
@@ -17,7 +18,7 @@ const DEFAULT_PORT = 8500;
  * @param {(array)}  [keys=[c1, c2]]
  * @param{(object)}  [ref=global]
  */
-function ZhikeConsul(keys, host, port, ref) {
+function ZhikeConsul(keys, host, port, ref, timeout) {
   if (!keys) {
     throw new Error('arguments must have configKeys');
   }
@@ -27,6 +28,7 @@ function ZhikeConsul(keys, host, port, ref) {
 
   host = host || DEFAULT_HOST;
   port = port || DEFAULT_PORT;
+  timeout = timeout || DEFAULT_TIMEOUT;
 
   // 检查CFG是否存在
   if (ref.CFG) {
@@ -40,11 +42,12 @@ function ZhikeConsul(keys, host, port, ref) {
   this.keys = keys;
   this.host = host;
   this.port = port;
+  this.timeout = timeout;
   this.consul = consul({
     host: this.host,
     port: this.port,
     promisify: true,
-    timeout: 1000
+    timeout: this.timeout,
   });
 
   // 初始化CFG为空对象
