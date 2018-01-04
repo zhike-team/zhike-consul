@@ -17,9 +17,9 @@ const DEFAULT_TIMEOUT = 3000;
  * @param {(string)} [host=localhost]
  * @param {(array)}  [keys=[c1, c2]]
  * @param{(object)}  [ref=global]
- * @param {number} [timeout=3000]
+ * @param {object} [option.timeout=3000, option.output=process.cwd() + '/config.local.js']
  */
-function ZhikeConsul(keys, host, port, ref, timeout) {
+function ZhikeConsul(keys, host, port, ref, option) {
   if (!keys) {
     throw new Error('arguments must have configKeys');
   }
@@ -29,8 +29,17 @@ function ZhikeConsul(keys, host, port, ref, timeout) {
 
   host = host || DEFAULT_HOST;
   port = port || DEFAULT_PORT;
-  timeout = timeout || DEFAULT_TIMEOUT;
-  timeout = Math.min(Math.max(timeout, 1000), 30000);
+  const defaultOptioin = {
+    timeout: DEFAULT_TIMEOUT,
+    output: process.cwd() + '/config.local.js',
+  };
+
+  if (!isNaN(option)) {
+    option = { timeout: option }; // 兼容 1.0.9
+  }
+
+  option = Object.assign({}, defaultOptioin, option);
+  option.timeout = Math.min(Math.max(option.timeout, 1000), 30000);
 
   // 检查CFG是否存在
   if (ref.CFG) {
@@ -44,7 +53,7 @@ function ZhikeConsul(keys, host, port, ref, timeout) {
   this.keys = keys;
   this.host = host;
   this.port = port;
-  this.timeout = timeout;
+  this.timeout = option.timeout;
   this.consul = consul({
     host: this.host,
     port: this.port,
@@ -78,14 +87,17 @@ ZhikeConsul.prototype.pull = _Promise.coroutine(function*(env) {
         break;
       }
     }
-    this.ref.config = require(process.cwd() + '/config.local.js');
-    for (let key in this.ref.config) {
-      if (this.keys.indexOf(key) !== -1) {
-        this.ref.CFG[key] = this.ref.config[key];
-      } else {
-        this.ref.CFG[privateKey][key] = this.ref.config[key];
+    if (option.output) {
+      this.ref.config = require(option.output);
+      for (let key in this.ref.config) {
+        if (this.keys.indexOf(key) !== -1) {
+          this.ref.CFG[key] = this.ref.config[key];
+        } else {
+          this.ref.CFG[privateKey][key] = this.ref.config[key];
+        }
       }
     }
+    
     return {
       CFG: this.ref.CFG,
       config: this.ref.config
@@ -109,9 +121,11 @@ ZhikeConsul.prototype.pull = _Promise.coroutine(function*(env) {
     this.ref.config = Object.assign(this.ref.config, assign);
   }
 
-  // save to config.local.js
-  let fileContent = "'use strict';\n\nmodule.exports = " + formatJson(this.ref.config);
-  fs.writeFileSync(path.join(process.cwd() + '/config.local.js'), fileContent);
+  if (option.output) {
+    // save to config.local.js
+    let fileContent = "'use strict';\n\nmodule.exports = " + formatJson(this.ref.config);
+    fs.writeFileSync(path.join(option.output), fileContent);
+  }
 
   return {
     CFG: this.ref.CFG,
