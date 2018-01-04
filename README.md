@@ -57,7 +57,7 @@ Initialize a new Consul client
 + port(number), default: 8500
 + global, global.CFG可以获取到相关的配置
 + option.timeout, 超时时间，默认为3000，可以按需指定，最大不能超过30000，单位是毫秒
-+ option.output, 配置本地缓存文件绝对路径
++ option.output, 配置本地缓存文件绝对路径，设置成 false 可以禁用强制写到本地的特性。
 
 #### Usage
 ```js
