@@ -53,12 +53,12 @@ function ZhikeConsul(keys, host, port, ref, option) {
   this.keys = keys;
   this.host = host;
   this.port = port;
-  this.timeout = option.timeout;
+  this.option = option;
   this.consul = consul({
     host: this.host,
     port: this.port,
     promisify: true,
-    timeout: this.timeout,
+    timeout: this.option.timeout,
   });
 
   // 初始化CFG为空对象
@@ -87,7 +87,7 @@ ZhikeConsul.prototype.pull = _Promise.coroutine(function*(env) {
         break;
       }
     }
-    if (option.output) {
+    if (this.option.output) {
       this.ref.config = require(option.output);
       for (let key in this.ref.config) {
         if (this.keys.indexOf(key) !== -1) {
@@ -121,7 +121,7 @@ ZhikeConsul.prototype.pull = _Promise.coroutine(function*(env) {
     this.ref.config = Object.assign(this.ref.config, assign);
   }
 
-  if (option.output) {
+  if (this.option.output) {
     // save to config.local.js
     let fileContent = "'use strict';\n\nmodule.exports = " + formatJson(this.ref.config);
     fs.writeFileSync(path.join(option.output), fileContent);
