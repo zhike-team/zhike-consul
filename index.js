@@ -88,7 +88,7 @@ ZhikeConsul.prototype.pull = _Promise.coroutine(function*(env) {
       }
     }
     if (this.option.output) {
-      this.ref.config = require(option.output);
+      this.ref.config = require(this.option.output);
       for (let key in this.ref.config) {
         if (this.keys.indexOf(key) !== -1) {
           this.ref.CFG[key] = this.ref.config[key];
@@ -124,7 +124,7 @@ ZhikeConsul.prototype.pull = _Promise.coroutine(function*(env) {
   if (this.option.output) {
     // save to config.local.js
     let fileContent = "'use strict';\n\nmodule.exports = " + formatJson(this.ref.config);
-    fs.writeFileSync(path.join(option.output), fileContent);
+    fs.writeFileSync(path.join(this.option.output), fileContent);
   }
 
   return {
