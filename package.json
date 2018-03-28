@@ -21,8 +21,7 @@
   },
   "dependencies": {
     "bluebird": "^3.4.6",
-    "consul": "^0.27.0",
-    "format-json-pretty": "^1.0.1"
+    "consul": "^0.27.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
