@@ -1,6 +1,6 @@
 {
   "name": "zhike-consul",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "a simple consul client",
   "main": "index.js",
   "scripts": {
